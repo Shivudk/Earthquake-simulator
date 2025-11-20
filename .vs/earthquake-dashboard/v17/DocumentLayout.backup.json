@@ -86,8 +86,7 @@
               "RelativeToolTip": "engine\\quake_cuda_cpml.cu",
               "ViewState": "AgIAANcAAAAAAAAAAAAAAPIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-11-07T18:33:10.054Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-07T18:33:10.054Z"
             },
             {
               "$type": "Document",
@@ -111,8 +110,7 @@
               "RelativeToolTip": "server\\index.js",
               "ViewState": "AgIAAHYAAAAAAAAAAAAAAI4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-11-07T18:32:41.585Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-07T18:32:41.585Z"
             },
             {
               "$type": "Document",
@@ -124,8 +122,7 @@
               "RelativeToolTip": "engine\\build_cpml.bat",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAFAAAAAAAAAA==",
               "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAG7SURBVDhPzZTNSxtBHEBfPGipJ\u002B2iGFBjzJqu4nda0EO99CaCeBOEQlsotCCUakMO6sWrBz8QlZaWInjxXyjtQbNKwCqYUGObRKIosfFSKTazcXsQQWZXJOqhD4aB37x5cxu4TUzTlEc3xhHwD8bBdMkH18ORyLtOrLOr23YH00XAP2BmMplbWQH/gJl34WELuweHfF5eYz91JB9dim3wz8lf9G8Rfib2\u002BH18TGQ7xnJog1T66rBtMByNkzpMc3qaxdegkc0a7Ozuk9w7kFULtsEmzYNhGHhc5VRVOPG6KzEMQb2myqoF22A4GkOIDOGtH2zHdtiIRBFC8DUYklULtsGyUoWyEgUhBF\u002BWVskaBiVKEW2tjbJqwTZYqhTT0dZKg6ZypyCfWq\u002Bbx4/aiSeTvPIPsb4Z5lc6LV\u002BDy4LnVJY76e3pxFtdxeS7j8x8mKeuxsP49Cxz7z/JOlwVvEitWk1djYeXz55Qr91HVd2yArkEI9\u002B3WA2FGJuYIqivENR1WYFcgk/7eul/8RxdX\u002BHt635GR4ZlBXIJKveK8bU0s7gwz8MHPgoL78oKnH1fb\u002BLgyPnHscdMyJP/j39Wh9oGPXeiTgAAAABJRU5ErkJggg==",
-              "WhenOpened": "2025-11-07T18:52:15.62Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-07T18:52:15.62Z"
             },
             {
               "$type": "Document",
@@ -133,9 +130,9 @@
               "Title": "index.html",
               "DocumentMoniker": "C:\\Users\\shivu\\Downloads\\PC154153178\\earthquake-dashboard\\public\\index.html",
               "RelativeDocumentMoniker": "public\\index.html",
-              "ToolTip": "C:\\Users\\shivu\\Downloads\\PC154153178\\earthquake-dashboard\\public\\index.html",
-              "RelativeToolTip": "public\\index.html",
-              "ViewState": "AgIAAO4AAAAAAAAAAAAowBwBAAAnAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\shivu\\Downloads\\PC154153178\\earthquake-dashboard\\public\\index.html*",
+              "RelativeToolTip": "public\\index.html*",
+              "ViewState": "AgIAAO4AAAAAAAAAAAAowAQBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
               "WhenOpened": "2025-11-07T18:32:11.589Z",
               "EditorCaption": ""
@@ -162,8 +159,7 @@
               "RelativeToolTip": "public\\colormap.js",
               "ViewState": "AgIAADQAAAAAAAAAAAAkwEIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-11-07T19:05:32.519Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-07T19:05:32.519Z"
             },
             {
               "$type": "Document",
@@ -187,8 +183,7 @@
               "RelativeToolTip": "public\\app.js",
               "ViewState": "AgIAAF4AAAAAAAAAAAAcwPwAAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-11-07T18:31:59.422Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-07T18:31:59.422Z"
             },
             {
               "$type": "Document",

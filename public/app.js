@@ -1,4 +1,4 @@
-﻿// app.js - Client-side application logic
+﻿// app.js - Client-side application logic with Frame Queueing
 
 document.addEventListener("DOMContentLoaded", () => {
     // --- 1. Get DOM Elements ---
@@ -11,21 +11,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlayCheck = document.getElementById("overlay");
     const loader = document.getElementById("loader");
 
-    // Analytics displays (Control Panel)
+    // Analytics displays
     const fpsInput = document.getElementById("fps");
     const gpuInput = document.getElementById("gpu");
     const energyInput = document.getElementById("energy");
-    const peakInput = document.getElementById("peak"); // NEW: Get Peak Amp input
-
-    // Analytics displays (Overlay)
+    const peakInput = document.getElementById("peak");
     const fpsLabel = document.getElementById("fpsLabel");
     const gpuLabel = document.getElementById("gpuLabel");
     const energyLabel = document.getElementById("energyLabel");
 
-    // Colorbar canvas
     const colorbarCanvas = document.getElementById("colorbar-canvas");
-
-    // Get Energy Chart Canvas
     const energyChartCanvas = document.getElementById("energyChart");
     const chartCtx = energyChartCanvas.getContext("2d");
 
@@ -43,10 +38,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- 3. State Variables ---
     let ws = null;
-    let simNx = 256;
-    let simNy = 256;
-    let lastFrameTime = performance.now();
-    let frameCount = 0;
+    let simNx = 800; // Updated default
+    let simNy = 800;
+    
+    // FRAME QUEUE VARIABLES
+    let frameQueue = [];
+    let isPlaying = false;
+    let lastRenderTime = 0;
 
     // Energy Chart State
     let energyHistory = [];
@@ -71,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAnalytics("fps", "---");
             updateAnalytics("gpu", "---");
             updateAnalytics("energy", "---");
-            updateAnalytics("peak", "---"); // NEW: Reset peak
+            updateAnalytics("peak", "---");
             resetEnergyChart();
         };
 
@@ -82,31 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         ws.onmessage = (e) => {
             if (e.data instanceof ArrayBuffer) {
-                // --- Binary Frame Received ---
+                // --- Binary Frame Received: PUSH TO QUEUE ---
+                // We do not render here immediately. We store it.
                 const frame = new Float32Array(e.data);
-
-                // --- NEW: Calculate Peak Amplitude ---
-                // *** THIS IS THE FIX: peakAmp must be initialized to 0 ***
-                let peakAmp = 0;
-                for (let i = 0; i < frame.length; i++) {
-                    const amp = Math.abs(frame[i]);
-                    if (amp > peakAmp) peakAmp = amp;
-                }
-                updateAnalytics("peak", peakAmp.toFixed(4));
-                // --- End New Logic ---
-
-                // Send frame to renderer
-                renderer.update(frame, simNx, simNy);
-
-                // Calculate client-side FPS
-                frameCount++;
-                const now = performance.now();
-                if (now - lastFrameTime > 1000) {
-                    const fps = (frameCount * 1000) / (now - lastFrameTime);
-                    updateAnalytics("fps", fps.toFixed(1));
-                    frameCount = 0;
-                    lastFrameTime = now;
-                }
+                frameQueue.push(frame);
             } else {
                 // --- JSON Message Received ---
                 try {
@@ -117,7 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         simNy = msg.ny;
                         canvas.width = msg.nx;
                         canvas.height = msg.ny;
-                        console.log(`Set canvas resolution to ${msg.nx}x${msg.ny}`);
+                        // Clear queue on new start
+                        frameQueue = [];
                     } else if (msg.type === "analytics") {
                         updateAnalytics(msg.key, msg.value);
                         if (msg.key === "energy") {
@@ -131,10 +109,52 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    // --- 5. UI Event Listeners ---
+    // --- 5. Render Loop (The "Player") ---
+    function animationLoop(timestamp) {
+        if (!isPlaying) {
+            requestAnimationFrame(animationLoop);
+            return;
+        }
+
+        // Play back frames if available
+        if (frameQueue.length > 0) {
+            const frame = frameQueue.shift(); // Get oldest frame
+            
+            // Update peak amp logic
+            let peakAmp = 0;
+            for (let i = 0; i < frame.length; i+=10) { // Sample every 10th for speed
+                const amp = Math.abs(frame[i]);
+                if (amp > peakAmp) peakAmp = amp;
+            }
+            updateAnalytics("peak", peakAmp.toFixed(4));
+
+            // Send to GPU
+            renderer.update(frame, simNx, simNy);
+
+            // Calculate Client FPS
+            const dt = timestamp - lastRenderTime;
+            if (dt > 500) { // Update FPS every 500ms
+                const fps = 1000 / dt;
+                // Only show reasonable FPS
+                if (fps < 200) updateAnalytics("fps", fps.toFixed(1));
+                lastRenderTime = timestamp;
+            }
+        }
+
+        requestAnimationFrame(animationLoop);
+    }
+
+    // Start the loop immediately
+    isPlaying = true;
+    requestAnimationFrame(animationLoop);
+
+
+    // --- 6. UI Event Listeners ---
     startBtn.onclick = () => {
         if (ws && ws.readyState === WebSocket.OPEN) {
             resetEnergyChart();
+            frameQueue = []; // Clear old frames
+            
             const cfg = {
                 nx: +document.getElementById("nx").value,
                 ny: +document.getElementById("ny").value,
@@ -158,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (ws && ws.readyState === WebSocket.OPEN) {
             console.log("Sending 'stop'");
             ws.send(JSON.stringify({ type: "stop" }));
+            frameQueue = [];
             resetEnergyChart();
         }
     };
@@ -175,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderer.render();
     };
 
-    // --- 6. Helper Functions ---
+    // --- 7. Helper Functions ---
     function updateAnalytics(key, value) {
         if (key === "fps") {
             fpsInput.value = value;
@@ -186,9 +207,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (key === "energy") {
             energyInput.value = value;
             energyLabel.innerText = value;
-        } else if (key === "peak") { // NEW: Handle peak key
+        } else if (key === "peak") {
             peakInput.value = value;
-            // You could add a peakLabel.innerText = value; here too
         }
     }
 
@@ -201,7 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Energy Chart Drawing Functions ---
-
     function updateEnergyChart(newValue) {
         energyHistory.push(newValue);
         if (energyHistory.length > MAX_HISTORY) {
@@ -244,10 +263,10 @@ document.addEventListener("DOMContentLoaded", () => {
         chartCtx.stroke();
     }
 
-    // --- 7. Initial Run ---
+    // --- 8. Initial Run ---
     connect();
-    canvas.width = +document.getElementById("nx").value;
-    canvas.height = +document.getElementById("ny").value;
+    // Ensure renderer knows the initial colormap
+    if (renderer) renderer.setColormap(colormapSelect.value);
     updateColorbar(colormapSelect.value);
     resetEnergyChart();
 });

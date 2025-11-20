@@ -58,7 +58,7 @@ function startEngine(ws, cfg) {
         "--dx", cfg.dx,
         "--dt", cfg.dt,
         "--steps", 1000000000,
-        "--frames_every", 10,
+        "--frames_every", 60,
         "--pml", cfg.sponge,
         "--c0", cfg.c0,
         "--amp", cfg.amp,
@@ -66,27 +66,34 @@ function startEngine(ws, cfg) {
         "--model", cfg.model
     ];
 
-    // --- NEW: Add custom source location if provided ---
+    // --- Add custom source location if provided ---
     if (cfg.sx !== undefined && cfg.sy !== undefined) {
         args.push("--sx", cfg.sx.toString());
         args.push("--sy", cfg.sy.toString());
     }
-    // --- End New Logic ---
 
     console.log("🚀 Launching engine:", ENGINE_PATH, args.join(" "));
 
-    const engineProc = spawn(ENGINE_PATH, args, { windowsHide: true });
-    ws.engineProc = engineProc; // Associate this process with this client
+    // [FIXED] Run engine in its own directory so it finds DLLs/files
+    const engineProc = spawn(ENGINE_PATH, args, { 
+        windowsHide: true,
+        cwd: path.dirname(ENGINE_PATH) 
+    });
+    ws.engineProc = engineProc; 
 
     // --- Handle Engine Output (stderr) ---
     engineProc.stderr.on("data", (data) => {
-        ws.stderrBuffer += data.toString();
+        const textChunk = data.toString();
+        ws.stderrBuffer += textChunk;
+
+        // [FIXED] Print engine errors to the console so you can see them
+        process.stdout.write(textChunk);
 
         // Process all complete lines in the buffer
         let newlineIndex;
         while ((newlineIndex = ws.stderrBuffer.indexOf('\n')) >= 0) {
             const msg = ws.stderrBuffer.substring(0, newlineIndex).trim();
-            ws.stderrBuffer = ws.stderrBuffer.substring(newlineIndex + 1); // Keep the remainder
+            ws.stderrBuffer = ws.stderrBuffer.substring(newlineIndex + 1); 
 
             if (msg === "") continue;
 

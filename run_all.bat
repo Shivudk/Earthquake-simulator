@@ -7,7 +7,7 @@ echo   BUILDING CUDA ENGINE (quake_cuda_cpml.cu)
 echo ================================================
 cd engine
 if exist quake_cuda_stream.exe del quake_cuda_stream.exe
-nvcc -arch=sm_86 -O3 -use_fast_math -lineinfo -o quake_cuda_stream.exe quake_cuda_cpml.cu
+nvcc -O3 -use_fast_math -lineinfo -o quake_cuda_stream.exe quake_cuda_cpml.cu
 if %errorlevel% neq 0 (
     echo.
     echo ❌ BUILD FAILED! Check CUDA setup or nvcc output.
