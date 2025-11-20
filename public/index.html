@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌎 Earthquake Simulation Dashboard</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/616/616408.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #050c1a;
+            --panel: rgba(10, 20, 35, 0.75);
+            --accent: #00e0ff;
+            --text: #e6faff;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: "Inter", sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            position: relative;
+        }
+
+            header h1 {
+                font-family: "Orbitron", sans-serif;
+                font-size: 1.3rem;
+                color: var(--accent);
+                margin: 0;
+            }
+
+        #status {
+            font-size: 0.9rem;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            #status span {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: #ff4444;
+                display: inline-block;
+            }
+
+        main {
+            display: grid;
+            grid-template-columns: 340px 1fr 40px;
+            height: calc(100vh - 60px); /* 60px is header height */
+            position: absolute; /* Take up full space below header */
+            top: 60px;
+            width: 100%;
+        }
+
+        #controls {
+            background: var(--panel);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-right: 1px solid var(--border);
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+        }
+
+            #controls h2 {
+                font-family: "Orbitron", sans-serif;
+                font-size: 1rem;
+                margin-bottom: 6px;
+                color: var(--accent);
+            }
+
+        label {
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input, select {
+            width: 100px;
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 6px;
+        }
+
+            input[readonly] {
+                background: rgba(0,0,0,0.2);
+                color: #00e0ff;
+                font-family: monospace;
+            }
+
+        button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: "Inter", sans-serif;
+            transition: all 0.2s ease;
+        }
+
+            button:hover {
+                background: #00b0d4;
+            }
+
+        #view-container {
+            position: relative;
+            background: #0a1425;
+            overflow: hidden; /* Ensure canvas doesn't overflow */
+        }
+
+        canvas#view {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain; /* Scale canvas to fit container */
+        }
+
+        /* Colorbar */
+        #colorbar {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            border-left: 1px solid var(--border);
+        }
+        /* This is the new canvas element */
+        #colorbar-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+
+        /* Analytics Overlay */
+        #analytics {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #00fff2;
+            font-family: monospace;
+            font-size: 13px;
+            width: 220px;
+        }
+
+            #analytics canvas {
+                width: 100%;
+                height: 60px;
+                margin-top: 5px;
+                background: rgba(0,0,0,0.2);
+                border-radius: 4px;
+            }
+
+            #analytics h3 {
+                font-family: "Orbitron";
+                font-size: 14px;
+                color: var(--accent);
+                margin: 0 0 6px;
+                text-align: center;
+            }
+
+        footer {
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--accent);
+            font-family: "Orbitron";
+            font-size: 1.2rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🌎 Earthquake Simulation Lab</h1>
+        <div id="status"><span></span> <b id="statusText">disconnected</b></div>
+    </header>
+
+    <main>
+        <div id="controls">
+            <h2>Simulation Controls</h2>
+            <label>Grid X <input id="nx" type="number" value="256"></label>
+            <label>Grid Y <input id="ny" type="number" value="256"></label>
+            <label>Δt <input id="dt" type="number" step="0.0001" value="0.0006"></label>
+            <label>Δx <input id="dx" type="number" value="5"></label>
+            <label>c₀ (m/s) <input id="c0" type="number" value="3000"></label>
+            <label>f₀ (Hz) <input id="f0" type="number" value="8"></label>
+            <label>Sponge <input id="sponge" type="number" value="12"></label>
+            <label>Amplitude <input id="amp" type="number" step="0.01" value="0.05"></label>
+
+            <label>
+                Model
+                <select id="model">
+                    <option value="homogeneous">Homogeneous</option>
+                    <option value="two_layer">Two Layer</option>
+                    <option value="circle">Circular Anomaly</option>
+                </select>
+            </label>
+
+            <label>
+                Colormap
+                <select id="colormap">
+                    <option value="turbo">Turbo</option>
+                    <option value="seismic">Seismic</option>
+                    <option value="velocity">Velocity</option>
+                </select>
+            </label>
+            <label>Overlay <input id="overlay" type="checkbox"></label>
+            <label>Set Source (Click) <input id="setSource" type="checkbox"></label>
+
+            <div style="margin-top:10px; display:flex; gap:6px;">
+                <button id="start">Start</button>
+                <button id="stop">Stop</button>
+            </div>
+
+            <h2 style="margin-top:18px;">Analytics</h2>
+            <label>FPS <input id="fps" type="text" readonly value="---"></label>
+            <label>GPU Step (ms) <input id="gpu" type="text" readonly value="---"></label>
+            <label>Energy Σu² <input id="energy" type="text" readonly value="---"></label>
+            <label>Peak Amp <input id="peak" type="text" readonly value="---"></label>
+        </div>
+
+        <div id="view-container">
+            <canvas id="view" width="1024" height="768"></canvas>
+            <div id="loader">Initializing WebGL Renderer...</div>
+
+            <div id="analytics">
+                <h3>Live Analytics</h3>
+                <div>FPS: <span id="fpsLabel">--</span></div>
+                <div>GPU Step: <span id="gpuLabel">--</span> ms</div>
+                <div>Energy: <span id="energyLabel">--</span></div>
+                <canvas id="energyChart"></canvas>
+            </div>
+        </div>
+
+        <div id="colorbar">
+            <canvas id="colorbar-canvas" width="40" height="768"></canvas>
+        </div>
+    </main>
+
+    <footer style="position: absolute; bottom: 5px; left: 10px; font-size: 0.8rem; color: #888;">
+        © 2025 Earthquake GPU Simulation Lab
+    </footer>
+
+    <script src="colormap.js"></script>
+    <script src="render2d.js"></script>
+    <script src="rendergl.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

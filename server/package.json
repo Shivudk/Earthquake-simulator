@@ -1,0 +1,14 @@
+{
+  "name": "earthquake-dashboard-server",
+  "version": "1.0.0",
+  "description": "Real-Time Earthquake Wave Propagation Visualization Server",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  }
+}
